@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/cart.dart';
 import '../providers/product_model.dart';
 import '../screens/Product_detail.dart';
 
 class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final product = Provider.of<Product>(context);
-
+    final product = Provider.of<Product>(context, listen: false);
+    final cart = Provider.of<Cart>(context, listen: false);
     return Material(
       borderRadius: BorderRadius.all(Radius.circular(10)),
       elevation: 5,
@@ -25,7 +26,7 @@ class ProductItem extends StatelessWidget {
                 borderRadius: BorderRadius.all(Radius.circular(10)),
                 child: Image.network(
                   product.imageUrl,
-                  height: 250,
+                  //height: 250,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
@@ -126,17 +127,19 @@ class ProductItem extends StatelessWidget {
             backgroundColor: Colors.black87,
 
             // Favorite icon:
-            leading: IconButton(
-              iconSize: 24,
-              icon: Icon(
-                product.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: product.isFavorite
-                    ? Theme.of(context).colorScheme.secondary
-                    : Colors.white,
-                size: 24,
+            leading: Consumer<Product>(
+              builder: (ctx, product, child) => IconButton(
+                iconSize: 24,
+                icon: Icon(
+                  product.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: product.isFavorite
+                      ? Theme.of(context).colorScheme.secondary
+                      : Colors.white,
+                  size: 24,
+                ),
+                tooltip: 'Favorite',
+                onPressed: () => product.toggleFavoriteStatus(),
               ),
-              tooltip: 'Favorite',
-              onPressed: () => product.toggleFavoriteStatus(),
             ),
 
             // Product Title:
@@ -157,7 +160,8 @@ class ProductItem extends StatelessWidget {
                   color: Colors.white,
                   size: 24,
                 ),
-                onPressed: () => {},
+                onPressed: () =>
+                    {cart.addItem(product.id, product.title, product.price)},
               ),
             ),
           ),
