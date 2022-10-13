@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/widgets/badge.dart';
 
 import '../providers/cart.dart';
 import '../providers/product_model.dart';
@@ -8,8 +9,8 @@ import '../screens/Product_detail.dart';
 class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final product = Provider.of<Product>(context, listen: false);
-    final cart = Provider.of<Cart>(context, listen: false);
+    final product = Provider.of<Product>(context);
+    final cart = Provider.of<Cart>(context);
     return Material(
       borderRadius: BorderRadius.all(Radius.circular(10)),
       elevation: 5,
@@ -26,7 +27,6 @@ class ProductItem extends StatelessWidget {
                 borderRadius: BorderRadius.all(Radius.circular(10)),
                 child: Image.network(
                   product.imageUrl,
-                  //height: 250,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
@@ -151,17 +151,25 @@ class ProductItem extends StatelessWidget {
 
             // Add to cart icon:
             trailing: Tooltip(
-              padding: EdgeInsets.all(0),
+              padding: EdgeInsets.all(10),
               message: 'Add to cart',
-              child: IconButton(
-                padding: EdgeInsets.all(0),
-                icon: Icon(
-                  Icons.shopping_cart_outlined,
-                  color: Colors.white,
-                  size: 24,
+              child: Badge(
+                // key: Key(product.id),
+                child: IconButton(
+                  padding: EdgeInsets.all(0),
+                  icon: Icon(
+                    Icons.shopping_cart_outlined,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  onPressed: () => {
+                    cart.addItem(product.id, product.title, product.price,
+                        product.imageUrl)
+                  },
                 ),
-                onPressed: () =>
-                    {cart.addItem(product.id, product.title, product.price)},
+                value: cart.itemQuantity(product.id) > 99
+                    ? '+99'
+                    : cart.itemQuantity(product.id).toString(),
               ),
             ),
           ),

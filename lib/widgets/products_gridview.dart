@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/products_provider.dart';
-import 'product_item.dart';
+import './product_item.dart';
 
 class ProductsGridView extends StatelessWidget {
   final bool _isShowFav;
