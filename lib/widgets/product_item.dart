@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/products_provider.dart';
 import 'package:shop_app/widgets/badge.dart';
 
 import '../providers/cart.dart';
 import '../providers/product_model.dart';
 import '../screens/Product_detail.dart';
+import '../screens/add_or_edit_product_screen.dart';
 
 class ProductItem extends StatelessWidget {
   @override
@@ -93,7 +95,10 @@ class ProductItem extends StatelessWidget {
                                 size: 14,
                               ),
                             ),
-                            onTap: () {},
+                            onTap: () {
+                              Provider.of<Products>(context, listen: false)
+                                  .deleteProduct(product.id);
+                            },
                           )),
                       Tooltip(
                         message: 'Edit',
@@ -106,7 +111,11 @@ class ProductItem extends StatelessWidget {
                               size: 14,
                             ),
                           ),
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.of(context).pushNamed(
+                                AddOrEditProduct.routeName,
+                                arguments: product.id);
+                          },
                         ),
                       ),
                     ],
@@ -150,27 +159,100 @@ class ProductItem extends StatelessWidget {
             ),
 
             // Add to cart icon:
-            trailing: Tooltip(
-              padding: EdgeInsets.all(10),
-              message: 'Add to cart',
-              child: Badge(
-                // key: Key(product.id),
-                child: IconButton(
+            trailing: Row(
+              children: [
+                Tooltip(
                   padding: EdgeInsets.all(0),
-                  icon: Icon(
-                    Icons.shopping_cart_outlined,
-                    color: Colors.white,
-                    size: 24,
+                  message: 'Add to cart',
+                  child: Badge(
+                    //key: Key(product.id),
+                    child: IconButton(
+                      padding: EdgeInsets.all(0),
+                      icon: Icon(
+                        Icons.shopping_cart_outlined,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: () => {
+                        // cart.addItem(product.id, product.title, product.price,
+                        //     product.imageUrl)
+                      },
+                    ),
+                    value: cart.itemQuantity(product.id) > 99
+                        ? '+99'
+                        : cart.itemQuantity(product.id).toString(),
                   ),
-                  onPressed: () => {
-                    cart.addItem(product.id, product.title, product.price,
-                        product.imageUrl)
-                  },
                 ),
-                value: cart.itemQuantity(product.id) > 99
-                    ? '+99'
-                    : cart.itemQuantity(product.id).toString(),
-              ),
+                Container(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Tooltip(
+                          message: 'increase',
+                          child: GestureDetector(
+                            child: Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            onTap: () => {
+                              cart.addItem(product.id, product.title,
+                                  product.price, product.imageUrl),
+                              ScaffoldMessenger.of(context).clearSnackBars(),
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${product.title} added to your cart!',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            },
+                          )),
+                      Tooltip(
+                        message: 'decrease',
+                        child: GestureDetector(
+                          child: Icon(
+                            Icons.remove,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          onTap: () => {
+                            cart.isInCart(product.id)
+                                ? {
+                                    cart.decQuantity(product.id),
+                                    ScaffoldMessenger.of(context)
+                                        .clearSnackBars(),
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '${product.title} removed from your cart!',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  }
+                                : {
+                                    ScaffoldMessenger.of(context)
+                                        .hideCurrentSnackBar(),
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'you don\'t have any \"${product.title}\" in your cart!',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),

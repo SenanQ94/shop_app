@@ -70,6 +70,24 @@ class Products with ChangeNotifier {
     return [..._items];
   }
 
+  void addProduct(Product p) {
+    _items.add(p);
+    notifyListeners();
+  }
+
+  void updateProduct(Product p) {
+    var index = _items.indexWhere((prod) => prod.id == p.id);
+    if (index > 0) {
+      _items[index] = p;
+      notifyListeners();
+    }
+  }
+
+  void deleteProduct(String id) {
+    _items.removeWhere((prod) => prod.id == id);
+    notifyListeners();
+  }
+
   List<Product> get favoriteItems {
     return _items.where((p) => p.isFavorite).toList();
   }

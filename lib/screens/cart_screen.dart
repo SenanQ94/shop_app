@@ -9,7 +9,7 @@ import '../providers/orders.dart';
 
 class CartScreen extends StatefulWidget {
   static const routeName = '/cart';
-  const CartScreen({Key? key}) : super(key: key);
+  //const CartScreen({Key? key}) : super(key: key);
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -39,15 +39,19 @@ class _CartScreenState extends State<CartScreen> {
           ],
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            Expanded(
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                top: 5,
+                bottom: 1,
+                right: 15,
+                left: 15,
+              ),
               child: ListView.builder(
                   itemCount: cart.items.length,
                   itemBuilder: (ctx, i) {
-                    print(cartList[i].title);
                     return CartItemWidget(
                       id: cartList[i].id,
                       productId: cart.items.keys.toList()[i],
@@ -58,25 +62,61 @@ class _CartScreenState extends State<CartScreen> {
                     );
                   }),
             ),
-            ElevatedButton(
-                onPressed: cart.itemCount > 0
-                    ? () {
-                        Provider.of<Orders>(context, listen: false).addOrder(
-                            cart.items.values.toList(), cart.totalAmount);
-                        cart.clear();
-                        Navigator.of(context).pushNamed(OrdersScreen.routeName);
-                      }
-                    : null,
+          ),
+          IntrinsicHeight(
+            child: InkWell(
+              onTap: cart.itemCount > 0
+                  ? () {
+                      Provider.of<Orders>(context, listen: false).addOrder(
+                          cart.items.values.toList(), cart.totalAmount);
+                      cart.clear();
+                      Navigator.of(context).pushNamed(OrdersScreen.routeName);
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Your Order has been submitted!',
+                            textAlign: TextAlign.center,
+                          ),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    }
+                  : null,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                width: double.infinity,
+                color: cart.itemCount > 0
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.primary.withOpacity(0.5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Icon(Icons.shopping_cart_checkout_rounded),
-                    Text(cart.totalPrice.toString()),
-                    Text('Order Now!'),
+                    Text(
+                      '${cart.totalPrice.toStringAsFixed(2)} \$',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.surface,
+                          fontSize: 20),
+                    ),
+                    Spacer(),
+                    Text(
+                      'Order Now',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.surface,
+                          fontSize: 18),
+                    ),
+                    SizedBox(width: 10),
+                    Icon(
+                      Icons.local_shipping_outlined,
+                      size: 24,
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
                   ],
-                ))
-          ],
-        ),
+                ),
+              ),
+            ),
+          )
+        ],
       ),
     );
   }
