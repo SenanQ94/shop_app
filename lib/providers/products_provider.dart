@@ -1,91 +1,113 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/http_exceptions.dart';
 
 import './product_model.dart';
 
 class Products with ChangeNotifier {
   List<Product> _items = [
-    Product(
-      id: 'p1',
-      title: 'Trousers',
-      description: 'A nice pair of trousers.',
-      price: 59.99,
-      imageUrl:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Trousers%2C_dress_%28AM_1960.022-8%29.jpg/512px-Trousers%2C_dress_%28AM_1960.022-8%29.jpg',
-    ),
-    Product(
-      id: 'p2',
-      title: 'Yellow Scarf',
-      description: 'Warm and cozy - exactly what you need for the winter.',
-      price: 19.99,
-      imageUrl:
-          'https://live.staticflickr.com/4043/4438260868_cc79b3369d_z.jpg',
-    ),
-    Product(
-      id: 'p3',
-      title: 'A Pan',
-      description: 'Prepare any meal you want.',
-      price: 49.99,
-      imageUrl:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
-    ),
-    Product(
-      id: 'p4',
-      title: 'Headphones',
-      description: 'A nice pair of trousers.',
-      price: 59.99,
-      imageUrl:
-          'https://cdn.shopify.com/s/files/1/0573/2309/4216/products/LosAngeles_SandGold_001_1200x1200.png?v=1650876856',
-    ),
-    Product(
-      id: 'p5',
-      title: 'boots',
-      description: 'Warm and cozy - exactly what you need for the winter.',
-      price: 19.99,
-      imageUrl:
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSH37CmlD8_8_lN0e_INW7MpoMp-KnE5sptwH1ps-UKRpTCZkmnssiJOjb5UTbv1hMEccg&usqp=CAU',
-    ),
-    Product(
-        id: 'p7',
-        title: 'A Hat',
-        description: 'Prepare any meal you want.',
-        price: 49.99,
-        imageUrl:
-            'https://5.imimg.com/data5/QS/XK/MY-11393529/cotton-girls-cap-500x500.jpg')
+    // Product(
+    //     id: 'p7',
+    //     title: 'A Hat',
+    //     description: 'Prepare any meal you want.',
+    //     price: 49.99,
+    //     imageUrl:
+    //         'https://5.imimg.com/data5/QS/XK/MY-11393529/cotton-girls-cap-500x500.jpg')
   ];
 
-  // var _showFavoritesOnly = false;
-  //   void showFavsOnly() {
-  //   _showFavoritesOnly = true;
-  //   notifyListeners();
-  // }
-  // void showAll() {
-  //   _showFavoritesOnly = false;
-  //   notifyListeners();
-  // }
-
   List<Product> get allItems {
-    // if (_showFavoritesOnly) {
-    //   return _items.where((p) => p.isFavorite).toList();
-    // }
     return [..._items];
   }
 
-  void addProduct(Product p) {
-    _items.add(p);
-    notifyListeners();
+  Future<void> fetchAndSetData() async {
+    final myUrl = Uri.parse(
+        'https://shop-app-bc977-default-rtdb.europe-west1.firebasedatabase.app/products.json');
+
+    try {
+      final response = await http.get(myUrl);
+      final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      List<Product> loadedData = [];
+      extractedData.forEach((prodId, prodData) {
+        loadedData.add(
+          Product(
+            id: prodId,
+            title: prodData['title'],
+            description: prodData['description'],
+            price: prodData['price'],
+            imageUrl: prodData['imageUrl'],
+            isFavorite: prodData['isFavorite'],
+          ),
+        );
+      });
+      _items = loadedData;
+      notifyListeners();
+    } catch (error) {
+      throw error;
+    }
   }
 
-  void updateProduct(Product p) {
+  Future<void> addProduct(Product p) async {
+    final myUrl = Uri.parse(
+        'https://shop-app-bc977-default-rtdb.europe-west1.firebasedatabase.app/products.json');
+    try {
+      final response = await http.post(myUrl,
+          body: json.encode(
+            {
+              'title': p.title,
+              'description': p.description,
+              'price': p.price,
+              'imageUrl': p.imageUrl,
+              'isFavorite': p.isFavorite,
+            },
+          ));
+      final newProd = Product(
+          id: json.decode(response.body)['name'],
+          title: p.title,
+          description: p.description,
+          price: p.price,
+          imageUrl: p.imageUrl);
+      _items.add(newProd);
+      notifyListeners();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  Future<void> updateProduct(Product p) async {
     var index = _items.indexWhere((prod) => prod.id == p.id);
     if (index > 0) {
+      final myUrl = Uri.parse(
+          'https://shop-app-bc977-default-rtdb.europe-west1.firebasedatabase.app/products/${p.id}.json');
+      await http.patch(myUrl,
+          body: json.encode({
+            'title': p.title,
+            'description': p.description,
+            'price': p.price,
+            'imageUrl': p.imageUrl,
+            'isFavorite': p.isFavorite,
+          }));
       _items[index] = p;
       notifyListeners();
     }
   }
 
-  void deleteProduct(String id) {
+  Future<void> deleteProduct(String id) async {
+    final myUrl = Uri.parse(
+        'https://shop-app-bc977-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json');
+    final excitingProductIndex = _items.indexWhere((prod) => prod.id == id);
+    Product? exictingProduct = _items[excitingProductIndex];
     _items.removeWhere((prod) => prod.id == id);
     notifyListeners();
+
+    final response = await http.delete(myUrl);
+
+    if (response.statusCode >= 400) {
+      _items.insert(excitingProductIndex, exictingProduct);
+      notifyListeners();
+      throw HttpException('we could not delete the item!');
+    }
+    exictingProduct = null;
   }
 
   List<Product> get favoriteItems {

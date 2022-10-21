@@ -63,44 +63,95 @@ class _CartScreenState extends State<CartScreen> {
                   }),
             ),
           ),
-          IntrinsicHeight(
-            child: InkWell(
-              onTap: cart.itemCount > 0
-                  ? () {
-                      Provider.of<Orders>(context, listen: false).addOrder(
-                          cart.items.values.toList(), cart.totalAmount);
-                      cart.clear();
-                      Navigator.of(context).pushNamed(OrdersScreen.routeName);
-                      ScaffoldMessenger.of(context).clearSnackBars();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Your Order has been submitted!',
-                            textAlign: TextAlign.center,
-                          ),
-                          duration: Duration(seconds: 1),
+          OrderButton(cart: cart)
+        ],
+      ),
+    );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    Key? key,
+    required this.cart,
+  }) : super(key: key);
+
+  final Cart cart;
+
+  @override
+  State<OrderButton> createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  var _isLoading = false;
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: InkWell(
+        onTap: (widget.cart.itemCount > 0 || !_isLoading)
+            ? () async {
+                setState(() {
+                  _isLoading = true;
+                });
+                try {
+                  await Provider.of<Orders>(context, listen: false)
+                      .addOrder(
+                    widget.cart.items.values.toList(),
+                    widget.cart.totalAmount,
+                  )
+                      .then((value) {
+                    widget.cart.clear();
+                    Navigator.of(context).pushNamed(OrdersScreen.routeName);
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Your Order has been submitted!',
+                          textAlign: TextAlign.center,
                         ),
-                      );
-                    }
-                  : null,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                width: double.infinity,
-                color: cart.itemCount > 0
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  });
+                } catch (error) {
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'sorry something went wrong!',
+                        textAlign: TextAlign.center,
+                      ),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              }
+            : null,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+          width: double.infinity,
+          color: widget.cart.itemCount > 0
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.primary.withOpacity(0.5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: _isLoading
+                ? [CircularProgressIndicator()]
+                : [
                     Text(
-                      '${cart.totalPrice.toStringAsFixed(2)} \$',
+                      '${widget.cart.totalPrice.toStringAsFixed(2)} \$',
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.surface,
                           fontSize: 20),
                     ),
                     Spacer(),
                     Text(
-                      'Order Now',
+                      widget.cart.itemCount > 0
+                          ? 'Order Now'
+                          : 'Nothing to order!',
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.surface,
                           fontSize: 18),
@@ -112,11 +163,8 @@ class _CartScreenState extends State<CartScreen> {
                       color: Theme.of(context).colorScheme.surface,
                     ),
                   ],
-                ),
-              ),
-            ),
-          )
-        ],
+          ),
+        ),
       ),
     );
   }

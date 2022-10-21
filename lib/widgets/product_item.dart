@@ -11,6 +11,7 @@ import '../screens/add_or_edit_product_screen.dart';
 class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final scaffold = ScaffoldMessenger.of(context);
     final product = Provider.of<Product>(context);
     final cart = Provider.of<Cart>(context);
     return Material(
@@ -95,9 +96,18 @@ class ProductItem extends StatelessWidget {
                                 size: 14,
                               ),
                             ),
-                            onTap: () {
-                              Provider.of<Products>(context, listen: false)
-                                  .deleteProduct(product.id);
+                            onTap: () async {
+                              try {
+                                await Provider.of<Products>(context,
+                                        listen: false)
+                                    .deleteProduct(product.id);
+                              } catch (error) {
+                                scaffold.showSnackBar(
+                                  SnackBar(
+                                    content: Text('deleting faild!'),
+                                  ),
+                                );
+                              }
                             },
                           )),
                       Tooltip(
