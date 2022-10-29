@@ -28,6 +28,7 @@ class _AddOrEditProductState extends State<AddOrEditProduct> {
   bool _addnew = false;
   bool _isInit = true;
   bool _isloading = false;
+  late String _appBarTitle;
 
   bool _checkUrl(String url) {
     var urlPattern =
@@ -46,11 +47,13 @@ class _AddOrEditProductState extends State<AddOrEditProduct> {
     if (_isInit) {
       String productId = ModalRoute.of(context)!.settings.arguments as String;
       if (productId != 'NewProduct') {
+        _appBarTitle = 'Edit Product';
         _editedProduct = Provider.of<Products>(context).findById(productId);
         _imageUrlController.text = _editedProduct.imageUrl;
         _isFavorite = _editedProduct.isFavorite;
       } else {
         _addnew = true;
+        _appBarTitle = 'Add Product';
       }
     }
 
@@ -124,7 +127,7 @@ class _AddOrEditProductState extends State<AddOrEditProduct> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('edit product'),
+        title: Text(_appBarTitle),
         actions: [
           IconButton(
             onPressed: () {
