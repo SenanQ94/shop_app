@@ -1,4 +1,4 @@
-// ignore_for_file: unused_field
+*// ignore_for_file: unused_field
 import 'dart:async';
 import 'dart:convert';
 
@@ -34,7 +34,7 @@ class Auth with ChangeNotifier {
   Future<void> _authenticate(
       String? email, String? password, String urlSegment) async {
     final url = Uri.parse(
-        'https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=AIzaSyD9pOjFFrrWM5NLx7Rzes4VRvuqOLTmYKU');
+        'https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=*********');
     try {
       final response = await http.post(
         url,
