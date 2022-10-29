@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/providers/products_provider.dart';
 import 'package:shop_app/widgets/badge.dart';
 
+import '../providers/auth.dart';
 import '../providers/cart.dart';
 import '../providers/product_model.dart';
 import '../screens/Product_detail.dart';
-import '../screens/add_or_edit_product_screen.dart';
 
 class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final scaffold = ScaffoldMessenger.of(context);
+    //final scaffold = ScaffoldMessenger.of(context);
     final product = Provider.of<Product>(context);
     final cart = Provider.of<Cart>(context);
+    final authData = Provider.of<Auth>(context);
     return Material(
       borderRadius: BorderRadius.all(Radius.circular(10)),
       elevation: 5,
@@ -28,10 +28,15 @@ class ProductItem extends StatelessWidget {
               }),
               child: ClipRRect(
                 borderRadius: BorderRadius.all(Radius.circular(10)),
-                child: Image.network(
-                  product.imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+                child: Hero(
+                  tag: product.id,
+                  child: FadeInImage(
+                    placeholder:
+                        AssetImage('assets/images/product-placeholder.png'),
+                    image: NetworkImage(product.imageUrl),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
                 ),
               ),
             ),
@@ -66,73 +71,74 @@ class ProductItem extends StatelessWidget {
             ],
 
             // Action Buttons (Delete & Edit):
-            ...[
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  height: 26,
-                  padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(10),
-                      bottomLeft: Radius.circular(10),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Tooltip(
-                          message: 'Delete',
-                          child: GestureDetector(
-                            child: Container(
-                              margin: EdgeInsets.only(right: 8),
-                              child: Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                            ),
-                            onTap: () async {
-                              try {
-                                await Provider.of<Products>(context,
-                                        listen: false)
-                                    .deleteProduct(product.id);
-                              } catch (error) {
-                                scaffold.showSnackBar(
-                                  SnackBar(
-                                    content: Text('deleting faild!'),
-                                  ),
-                                );
-                              }
-                            },
-                          )),
-                      Tooltip(
-                        message: 'Edit',
-                        child: GestureDetector(
-                          child: Container(
-                            margin: EdgeInsets.only(left: 8),
-                            child: Icon(
-                              Icons.edit,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                                AddOrEditProduct.routeName,
-                                arguments: product.id);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            //   ...[
+            //     Positioned(
+            //       top: 0,
+            //       right: 0,
+            //       child: Container(
+            //         height: 26,
+            //         padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+            //         decoration: BoxDecoration(
+            //           color: Colors.black54,
+            //           borderRadius: BorderRadius.only(
+            //             topRight: Radius.circular(10),
+            //             bottomLeft: Radius.circular(10),
+            //           ),
+            //         ),
+            //         child: Row(
+            //           mainAxisSize: MainAxisSize.min,
+            //           mainAxisAlignment: MainAxisAlignment.end,
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             Tooltip(
+            //                 message: 'Delete',
+            //                 child: GestureDetector(
+            //                   child: Container(
+            //                     margin: EdgeInsets.only(right: 8),
+            //                     child: Icon(
+            //                       Icons.delete,
+            //                       color: Colors.white,
+            //                       size: 14,
+            //                     ),
+            //                   ),
+            //                   onTap: () async {
+            //                     try {
+            //                       await Provider.of<Products>(context,
+            //                               listen: false)
+            //                           .deleteProduct(product.id);
+            //                     } catch (error) {
+            //                       scaffold.showSnackBar(
+            //                         SnackBar(
+            //                           content: Text('deleting faild!'),
+            //                         ),
+            //                       );
+            //                     }
+            //                   },
+            //                 )),
+            //             Tooltip(
+            //               message: 'Edit',
+            //               child: GestureDetector(
+            //                 child: Container(
+            //                   margin: EdgeInsets.only(left: 8),
+            //                   child: Icon(
+            //                     Icons.edit,
+            //                     color: Colors.white,
+            //                     size: 14,
+            //                   ),
+            //                 ),
+            //                 onTap: () {
+            //                   Navigator.of(context).pushNamed(
+            //                       AddOrEditProduct.routeName,
+            //                       arguments: product.id);
+            //                 },
+            //               ),
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ],
           ],
         ),
 
@@ -157,7 +163,8 @@ class ProductItem extends StatelessWidget {
                   size: 24,
                 ),
                 tooltip: 'Favorite',
-                onPressed: () => product.toggleFavoriteStatus(),
+                onPressed: () => product.toggleFavoriteStatus(
+                    authData.token!, authData.userId!),
               ),
             ),
 

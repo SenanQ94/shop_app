@@ -19,17 +19,23 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavoriteStatus() async {
+  Future<void> toggleFavoriteStatus(String authToken, String userId) async {
     final oldSatatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
     try {
-      final myUrl = Uri.parse(
-          'https://shop-app-bc977-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json');
-      final response = await http.patch(myUrl,
-          body: json.encode({
-            'isFavorite': isFavorite,
-          }));
+      final myUrl = Uri.https(
+          'shop-app-bc977-default-rtdb.europe-west1.firebasedatabase.app',
+          '/userFavorites/$userId/$id.json',
+          {'auth': '$authToken'});
+      // final myUrl = Uri.parse(
+      //     'https://shop-app-bc977-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json');
+      final response = await http.put(
+        myUrl,
+        body: json.encode(
+          isFavorite,
+        ),
+      );
       if (response.statusCode >= 400) {
         isFavorite = oldSatatus;
         notifyListeners();

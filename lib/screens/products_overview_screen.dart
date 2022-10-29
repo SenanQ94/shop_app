@@ -14,6 +14,7 @@ enum FiltersOption {
 }
 
 class ProductsOverviewScreen extends StatefulWidget {
+  static const routeName = '/products_overview_screen';
   @override
   State<ProductsOverviewScreen> createState() => _ProductsOverviewScreenState();
 }
@@ -45,6 +46,18 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
       appBar: AppBar(
         title: Text('My Shop'),
         actions: [
+          Consumer<Cart>(
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(CartScreen.routeName);
+              },
+              icon: Icon(Icons.shopping_cart),
+            ),
+            builder: (_, cart, ch) => Badge(
+              child: ch as Widget,
+              value: cart.itemCount > 99 ? '+99' : cart.itemCount.toString(),
+            ),
+          ),
           PopupMenuButton(
             onSelected: (FiltersOption selectedFilter) {
               setState(() {
@@ -68,18 +81,6 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
                 value: FiltersOption.All,
               ),
             ],
-          ),
-          Consumer<Cart>(
-            child: IconButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(CartScreen.routeName);
-              },
-              icon: Icon(Icons.shopping_cart),
-            ),
-            builder: (_, cart, ch) => Badge(
-              child: ch as Widget,
-              value: cart.itemCount > 99 ? '+99' : cart.itemCount.toString(),
-            ),
           ),
         ],
       ),

@@ -10,12 +10,12 @@ class UserProductsScreen extends StatelessWidget {
   static const String routeName = '/user_products_screen';
 
   Future<void> _refreshData(BuildContext context) async {
-    await Provider.of<Products>(context, listen: false).fetchAndSetData();
+    await Provider.of<Products>(context, listen: false).fetchAndSetData(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final Products productsData = Provider.of<Products>(context);
+    //final Products productsData = Provider.of<Products>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Your Products'),
@@ -29,26 +29,36 @@ class UserProductsScreen extends StatelessWidget {
         ],
       ),
       drawer: AppDrawer(),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshData(context),
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: ListView.builder(
-            itemCount: productsData.allItems.length,
-            itemBuilder: (_, i) {
-              return Column(
-                children: [
-                  UserProductItem(
-                    productId: productsData.allItems[i].id,
-                    title: productsData.allItems[i].title,
-                    imageUrl: productsData.allItems[i].imageUrl,
+      body: FutureBuilder(
+        future: _refreshData(context),
+        builder: (context, snapshot) => snapshot.connectionState ==
+                ConnectionState.waiting
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : RefreshIndicator(
+                onRefresh: () => _refreshData(context),
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Consumer<Products>(
+                    builder: (context, productsData, child) => ListView.builder(
+                      itemCount: productsData.allItems.length,
+                      itemBuilder: (_, i) {
+                        return Column(
+                          children: [
+                            UserProductItem(
+                              productId: productsData.allItems[i].id,
+                              title: productsData.allItems[i].title,
+                              imageUrl: productsData.allItems[i].imageUrl,
+                            ),
+                            Divider(),
+                          ],
+                        );
+                      },
+                    ),
                   ),
-                  Divider(),
-                ],
-              );
-            },
-          ),
-        ),
+                ),
+              ),
       ),
     );
   }
